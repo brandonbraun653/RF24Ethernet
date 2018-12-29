@@ -49,6 +49,7 @@
  *
  * $Id: clock.h,v 1.3 2006/06/11 21:46:39 adam Exp $
  */
+#pragma once
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
 
@@ -62,15 +63,6 @@
  *
  */
 void clock_init(void);
-
-/**
- * Get the current clock time.
- *
- * This function returns the current system clock time.
- *
- * \return The current clock time, measured in system ticks.
- */
-clock_time_t clock_time(void);
 
 /**
  * A second, measured in system clock time.

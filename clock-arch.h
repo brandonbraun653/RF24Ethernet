@@ -22,6 +22,16 @@
 #define clock_h_
 
 typedef unsigned long clock_time_t;
+
+/**
+ * Get the current clock time.
+ *
+ * This function returns the current system clock time.
+ *
+ * \return The current clock time, measured in system ticks.
+ */
+clock_time_t clock_time(void);
+
 #define CLOCK_CONF_SECOND 1000
 
 #endif

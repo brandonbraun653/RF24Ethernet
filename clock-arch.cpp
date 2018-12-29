@@ -18,10 +18,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <Arduino.h>
+#include <Chimera/chimera.hpp>
 #include "clock-arch.h"
 
 clock_time_t clock_time(void)
 {
-	return (clock_time_t)millis();
+    return static_cast<clock_time_t>(Chimera::millis());
 }

@@ -16,7 +16,6 @@
  * @{
  */
 
-
 /**
  * \file
  * Timer library header file.
@@ -58,6 +57,7 @@
  *
  * $Id: timer.h,v 1.3 2006/06/11 21:46:39 adam Exp $
  */
+#pragma once
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
@@ -71,9 +71,10 @@
  *
  * \hideinitializer
  */
-struct timer {
-  clock_time_t start;
-  clock_time_t interval;
+struct timer
+{
+    clock_time_t start;
+    clock_time_t interval;
 };
 
 void timer_set(struct timer *t, clock_time_t interval);
