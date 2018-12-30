@@ -124,7 +124,9 @@ void RF24EthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway
     mesh.setNodeID(ip[3]);
 #endif
 
+    #ifndef DISABLE_FRAGMENTATION
     uip_buf = (uint8_t *)&network.frag_ptr->message_buffer[0];
+    #endif
 
     uip_ipaddr_t ipaddr;
     uip_ip_addr(ipaddr, ip);
@@ -209,7 +211,9 @@ void RF24EthernetClass::tick()
 #endif
     if (RF24Ethernet.network.update() == EXTERNAL_DATA_TYPE)
     {
+        #ifndef DISABLE_FRAGMENTATION
         uip_len = RF24Ethernet.network.frag_ptr->message_size;
+        #endif
     }
 
 #if !defined(RF24_TAP)
