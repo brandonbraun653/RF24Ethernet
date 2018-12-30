@@ -65,9 +65,9 @@ int RF24Client::connect(IPAddress ip, uint16_t port)
     if (conn)
     {
 
-#if UIP_CONNECT_TIMEOUT > 0
+        #if UIP_CONNECT_TIMEOUT > 0
         int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
-#endif
+        #endif
 
         while ((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
         {
@@ -80,13 +80,13 @@ int RF24Client::connect(IPAddress ip, uint16_t port)
                 return 1;
             }
 
-#if UIP_CONNECT_TIMEOUT > 0
+            #if UIP_CONNECT_TIMEOUT > 0
             if (((int32_t)(millis() - timeout)) > 0)
             {
                 conn->tcpstateflags = UIP_CLOSED;
                 break;
             }
-#endif
+            #endif
         }
     }
     //delay(25);
