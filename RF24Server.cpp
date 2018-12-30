@@ -44,7 +44,7 @@ RF24Client RF24Server::available()
 
 /*************************************************************/
 
-void RF24Server::begin()
+void RF24Server::begin(uint16_t port)
 {
     uip_listen(_port);
     RF24Ethernet.tick();

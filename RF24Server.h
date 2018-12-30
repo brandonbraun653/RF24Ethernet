@@ -23,17 +23,17 @@
 #include "RF24Client.h"
 #include "ethernet_comp.h"
 
-class RF24Server : public Server {
+class RF24Server : public Server
+{
+    public:
+      RF24Server(uint16_t);
+      RF24Client available();
+      void begin(uint16_t port = 0) override;
+      size_t write(uint8_t);
+      size_t write(const uint8_t *buf, size_t size);
 
-public:
-  RF24Server(uint16_t);
-  RF24Client available();
-  void begin();
-  size_t write(uint8_t);
-  size_t write(const uint8_t *buf, size_t size);
-
-private:
-  uint16_t _port;
+    private:
+      uint16_t _port;
 };
 
 #endif
