@@ -110,7 +110,7 @@ public:
 #if !defined(RF24_TAP) // Using RF24Mesh
     RF24EthernetClass(NRF24L::NRF24L01 &_radio, RF24Network &_network, RF24Mesh &_mesh);
 #else
-    RF24EthernetClass(RF24 &_radio, RF24Network &_network);
+    RF24EthernetClass(NRF24L::NRF24L01 &_radio, RF24Network &_network);
 #endif
     /**
 		* Basic constructor

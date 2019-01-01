@@ -25,14 +25,15 @@
 
 
 /*********** USER DEBUG CONFIGURATION *********/
-//#define RF24ETHERNET_DEBUG_CLIENT 
-//#define ETH_DEBUG_L1 
-//#define ETH_DEBUG_L2 
+#define RF24ETHERNET_DEBUG_CLIENT 
+#define ETH_DEBUG_L1 
+#define ETH_DEBUG_L2 
 //#define RF24ETHERNET_DEBUG_UDP
 //#define RF24ETHERNET_DEBUG_DNS
 /****************************************/
 
 // Note: See uip-conf.h for general user configuration options
+#define RF24_TAP
 
 /** 
  * Uncomment <b>#define RF24ETHERNET_DEBUG_CLIENT</b>  to enable main debugging output  

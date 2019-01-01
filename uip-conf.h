@@ -54,6 +54,8 @@
 User Configuration Options
 /* @{ */
 
+#define UIP_CONNECT_TIMEOUT 5
+
 /** Maximum number of TCP connections. */
 #define UIP_CONF_MAX_CONNECTIONS 1
 
@@ -147,7 +149,7 @@ User Configuration Options
 * @note Must be an odd number or the TCP/IP sequence gets out of order with payloads larger than 511 bytes
 * I think this might be a bug or missing feature of the uip stack
 */
-#define UIP_CONF_EXTERNAL_BUFFER
+//#define UIP_CONF_EXTERNAL_BUFFER
 
 #if UIP_CONF_BUFFER_SIZE >= 512
   #define OUTPUT_BUFFER_SIZE 511
@@ -207,7 +209,7 @@ User Configuration Options
  * \hideinitializer
  */
 //#define UIP_CONF_LOGGING         1
-#define UIP_CONF_LOGGING         0
+#define UIP_CONF_LOGGING         1
 
 /**
  * uIP statistics on or off

@@ -49,12 +49,9 @@ uint8_t RF24Client::connected()
 
 int RF24Client::connect(IPAddress ip, uint16_t port)
 {
-
 #if UIP_ACTIVE_OPEN > 0
 
     uint32_t timer = millis();
-
-    //do{
 
     stop();
     uip_ipaddr_t ipaddr;
@@ -64,7 +61,6 @@ int RF24Client::connect(IPAddress ip, uint16_t port)
 
     if (conn)
     {
-
         #if UIP_CONNECT_TIMEOUT > 0
         int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
         #endif
@@ -76,7 +72,7 @@ int RF24Client::connect(IPAddress ip, uint16_t port)
             if ((conn->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED)
             {
                 data = (uip_userdata_t *)conn->appstate;
-                IF_RF24ETHERNET_DEBUG_CLIENT(Serial.print(millis()); Serial.print(F(" connected, state: ")); Serial.print(data->state); Serial.print(F(", first packet in: ")); Serial.println(data->packets_in););
+                IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d connected, state: %d, first packet in: %d\r\n", (int)millis(), data->state, data->packets_in););
                 return 1;
             }
 
@@ -89,9 +85,6 @@ int RF24Client::connect(IPAddress ip, uint16_t port)
             #endif
         }
     }
-    //delay(25);
-    //}while(millis()-timer < 175);
-
 #endif //Active open enabled
 
     return 0;
@@ -119,9 +112,10 @@ int RF24Client::connect(const char *host, uint16_t port)
         return connect(remote_addr, port);
     }
 #endif
-#if defined(ETH_DEBUG_L1) || defined(RF24ETHERNET_DEBUG_DNS)
-    Serial.println(F("*UIP DNS fail*"));
-#endif
+    
+    #if defined(ETH_DEBUG_L1) || defined(RF24ETHERNET_DEBUG_DNS)
+    printf("*UIP DNS fail*\r\n");
+    #endif
 
     return ret;
 }
@@ -133,8 +127,7 @@ void RF24Client::stop()
 
     if (data && data->state)
     {
-
-        IF_RF24ETHERNET_DEBUG_CLIENT(Serial.print(millis()); Serial.println(F(" before stop(), with data")););
+        IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d before stop(), with data\r\n", (int)millis()););
 
         data->packets_in = 0;
         data->dataCnt = 0;
@@ -148,11 +141,11 @@ void RF24Client::stop()
             data->state |= UIP_CLIENT_CLOSE;
         }
 
-        IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("after stop()")););
+        IF_RF24ETHERNET_DEBUG_CLIENT(printf("after stop()"););
     }
     else
     {
-        IF_RF24ETHERNET_DEBUG_CLIENT(Serial.print(millis()); Serial.println(F(" stop(), data: NULL")););
+        IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d stop(), data: NULL\r\n", (int)millis()););
     }
 
     data = NULL;
@@ -197,7 +190,6 @@ size_t RF24Client::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
 
     size_t total_written = 0;
     size_t payloadSize = std::min(size, static_cast<size_t>(UIP_TCP_MSS));
-    //Serial.println("W1");
 
     uint32_t testTimeout = millis();
 
@@ -211,8 +203,7 @@ test2:
         {
             goto test2;
         }
-
-        IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.print(F(" UIPClient.write: writePacket(")); Serial.print(u->packets_out); Serial.print(F(") pos: ")); Serial.print(u->out_pos); Serial.print(F(", buf[")); Serial.print(size - total_written); Serial.print(F("]: '")); Serial.write((uint8_t *)buf + total_written, payloadSize); Serial.println(F("'")););
+        IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d UIPClient.write: writePacket(%d) pos: %d, buf[%d]\r\n", (int)millis(), (int)u->packets_out, (int)u->out_pos, (int)(size - total_written)) ;);
 
         memcpy(u->myData + u->out_pos, buf + total_written, payloadSize);
         u->packets_out = 1;
@@ -224,8 +215,6 @@ test2:
         {
             size_t remain = size - total_written;
             payloadSize = std::min(remain, static_cast<size_t>(UIP_TCP_MSS));
-
-            //RF24EthernetClass::tick();
             goto test2;
         }
         return u->out_pos;
@@ -254,18 +243,18 @@ void serialip_appcall(void)
     if (!u && uip_connected())
     {
 
-        IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.println(F(" UIPClient uip_connected")););
+        IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d UIPClient uip_connected\r\n", (int)millis()););
 
         u = (uip_userdata_t *)EthernetClient::_allocateData();
 
         if (u)
         {
             uip_conn->appstate = u;
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.print(F("UIPClient allocated state: ")); Serial.println(u->state, BIN););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("UIPClient allocated state: %d", (int)u->state););
         }
         else
         {
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("UIPClient allocation failed")););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("UIPClient allocation failed\r\n"););
         }
     }
 
@@ -274,7 +263,7 @@ void serialip_appcall(void)
     {
         if (uip_newdata())
         {
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.print(F(" UIPClient uip_newdata, uip_len:")); Serial.println(uip_len););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d UIPClient uip_newdata, uip_len: %d\r\n", (int)millis(), (int)uip_len););
 
             if (u->sent)
             {
@@ -300,7 +289,7 @@ void serialip_appcall(void)
         if (uip_closed() || uip_timedout() || uip_aborted())
         {
 
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.println(F(" UIPClient uip_closed")););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("\r\n") ; printf("%d\r\n", (int)millis()) ; printf("UIPClient uip_closed\r\n"); );
             // drop outgoing packets not sent yet:
             u->packets_out = 0;
 
@@ -308,15 +297,15 @@ void serialip_appcall(void)
             {
                 ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
                 u->state |= UIP_CLIENT_REMOTECLOSED;
-                IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("UIPClient close 1")););
+                IF_RF24ETHERNET_DEBUG_CLIENT(printf("UIPClient close 1\r\n"););
             }
             else
             {
-                IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("UIPClient close 2")););
+                IF_RF24ETHERNET_DEBUG_CLIENT(printf("UIPClient close 2\r\n"););
                 u->state = 0;
             }
 
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("after UIPClient uip_closed")););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("after UIPClient uip_closed\r\n"););
             uip_conn->appstate = NULL;
             goto finish;
         }
@@ -324,7 +313,7 @@ void serialip_appcall(void)
         /*******ACKED**********/
         if (uip_acked())
         {
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.println(F(" UIPClient uip_acked")););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("\r\n"); printf("%d\r\n", (int)millis()); printf("UIPClient uip_acked\r\n"););
             u->state &= ~UIP_CLIENT_RESTART;
             u->hold = u->out_pos = u->windowOpened = u->packets_out = false;
             u->connAbortTime = u->restartTime = millis();
@@ -358,11 +347,12 @@ void serialip_appcall(void)
 
                     if (millis() - u->connAbortTime >= UIP_CONNECTION_TIMEOUT)
                     {
-#if defined RF24ETHERNET_DEBUG_CLIENT || defined ETH_DEBUG_L1
-                        Serial.println();
-                        Serial.print(millis());
-                        Serial.println(F(" *********** ABORTING CONNECTION ***************"));
-#endif
+                        #if defined RF24ETHERNET_DEBUG_CLIENT || defined ETH_DEBUG_L1
+                        printf("\r\n");
+                        printf("%d\r\n", (int)millis());
+                        printf(" *********** ABORTING CONNECTION ***************\r\n");
+                        #endif
+
                         u->windowOpened = false;
                         u->state = 0;
                         uip_conn->appstate = NULL;
@@ -372,12 +362,12 @@ void serialip_appcall(void)
                     else
                     {
 #endif
-#if defined RF24ETHERNET_DEBUG_CLIENT || defined ETH_DEBUG_L1
-                        Serial.println();
-                        Serial.print(millis());
-                        Serial.print(F(" UIPClient Re-Open TCP Window, time remaining before abort: "));
-                        Serial.println((UIP_CONNECTION_TIMEOUT - (millis() - u->connAbortTime)) / 1000.00);
-#endif
+                        #if defined RF24ETHERNET_DEBUG_CLIENT || defined ETH_DEBUG_L1
+                        printf("\r\n");
+                        printf("%d\r\n", (int)millis());
+                        printf(" UIPClient Re-Open TCP Window, time remaining before abort: %f\r\n", ((UIP_CONNECTION_TIMEOUT - (millis() - u->connAbortTime)) / 1000.00));
+                        #endif
+
                         u->restartInterval += 500;
                         u->restartInterval = std::min(u->restartInterval, static_cast<uint32_t>(7000));
                         uip_restart();
@@ -392,19 +382,19 @@ void serialip_appcall(void)
 
         if (u->state & UIP_CLIENT_CLOSE)
         {
-            IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(); Serial.print(millis()); Serial.println(F(" UIPClient state UIP_CLIENT_CLOSE")););
+            IF_RF24ETHERNET_DEBUG_CLIENT(printf("%d UIPClient state UIP_CLIENT_CLOSE", (int)millis()););
 
             if (u->packets_out == 0)
             {
                 u->state = 0;
                 uip_conn->appstate = NULL;
                 uip_close();
-                IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("no blocks out -> free userdata")););
+                IF_RF24ETHERNET_DEBUG_CLIENT(printf("no blocks out -> free userdata\r\n"););
             }
             else
             {
                 uip_stop();
-                IF_RF24ETHERNET_DEBUG_CLIENT(Serial.println(F("blocks outstanding transfer -> uip_stop()")););
+                IF_RF24ETHERNET_DEBUG_CLIENT(printf("blocks outstanding transfer -> uip_stop()\r\n"););
             }
         }
     finish:;
@@ -414,11 +404,11 @@ void serialip_appcall(void)
             if (!(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
             {
                 uip_restart();
-#if defined ETH_DEBUG_L1
-                Serial.println();
-                Serial.print(millis());
-                Serial.println(F(" UIPClient Re-Open TCP Window"));
-#endif
+
+                #if defined ETH_DEBUG_L1
+                printf("%d UIPClient Re-Open TCP Window", (int)millis());
+                #endif
+
                 u->windowOpened = true;
                 u->restartInterval = UIP_WINDOW_REOPEN_DELAY; //.75 seconds
                 u->restartTime = u->connAbortTime = millis();
@@ -516,11 +506,11 @@ int RF24Client::read(uint8_t *buf, size_t size)
                 data->state |= UIP_CLIENT_RESTART;
                 data->restartTime = 0;
 
-                IF_ETH_DEBUG_L2(Serial.print(F("UIPClient set restart ")); Serial.println(data->state & UIP_CLIENT_SOCKETS); Serial.println(F("**")); Serial.println(data->state, BIN); Serial.println(F("**")); Serial.println(UIP_CLIENT_SOCKETS, BIN); Serial.println(F("**")););
+                IF_ETH_DEBUG_L2(printf("UIPClient set restart %d ** %d ** %d **\r\n", (int)(data->state & UIP_CLIENT_SOCKETS), (int)data->state, (int)UIP_CLIENT_SOCKETS););
             }
             else
             {
-                IF_ETH_DEBUG_L2(Serial.print(F("UIPClient stop?????? ")); Serial.println(data->state & UIP_CLIENT_SOCKETS); Serial.println(F("**")); Serial.println(data->state, BIN); Serial.println(F("**")); Serial.println(UIP_CLIENT_SOCKETS, BIN); Serial.println(F("**")););
+                IF_ETH_DEBUG_L2(printf("UIPClient stop??????  %d ** %d ** %d **\r\n", (int)(data->state & UIP_CLIENT_SOCKETS), (int)data->state, (int)UIP_CLIENT_SOCKETS) ;);
             }
 
             if (data->packets_in == 0)

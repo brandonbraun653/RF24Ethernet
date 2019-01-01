@@ -21,11 +21,13 @@
 #include "RF24Ethernet.h"
 #include <utility/timer.h>
 
+using namespace Chimera;
+
 IPAddress RF24EthernetClass::_dnsServerAddress;
 
 /*************************************************************/
 #if defined(RF24_TAP)
-RF24EthernetClass::RF24EthernetClass(RF24 &_radio, RF24Network &_network) : radio(_radio), network(_network)
+RF24EthernetClass::RF24EthernetClass(NRF24L::NRF24L01 &_radio, RF24Network &_network) : radio(_radio) , network(_network)
 {
 }
 #else // Using RF24Mesh
@@ -67,10 +69,11 @@ void RF24EthernetClass::setMac(uint16_t address)
 
     const uint8_t mac[6] = {0x52, 0x46, 0x32, 0x34, static_cast<uint8_t>(address), static_cast<uint8_t>(address >> 8)};
 
-#if defined(RF24_TAP)
+    #if defined(RF24_TAP)
     uip_seteth_addr(mac);
     network.multicastRelay = 1;
-#endif
+    #endif
+
     RF24_Channel = RF24_Channel ? RF24_Channel : 97;
     network.begin(RF24_Channel, address);
 }
@@ -111,7 +114,6 @@ void RF24EthernetClass::begin(IPAddress ip, IPAddress dns, IPAddress gateway)
 
 void RF24EthernetClass::begin(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet)
 {
-    //init(mac);
     configure(ip, dns, gateway, subnet);
 }
 
@@ -120,9 +122,9 @@ void RF24EthernetClass::begin(IPAddress ip, IPAddress dns, IPAddress gateway, IP
 void RF24EthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet)
 {
 
-#if !defined(RF24_TAP) // Using RF24Mesh
+    #if !defined(RF24_TAP) // Using RF24Mesh
     mesh.setNodeID(ip[3]);
-#endif
+    #endif
 
     #ifndef DISABLE_FRAGMENTATION
     uip_buf = (uint8_t *)&network.frag_ptr->message_buffer[0];
@@ -318,29 +320,17 @@ bool RF24EthernetClass::network_send()
 
     bool ok = RF24Ethernet.network.write(headerOut, uip_buf, uip_len);
 
-#if defined ETH_DEBUG_L1 || defined ETH_DEBUG_L2
+    #if defined ETH_DEBUG_L1 || defined ETH_DEBUG_L2
     if (!ok)
     {
-        Serial.println();
-        Serial.print(millis());
-        Serial.println(F(" *** RF24Ethernet Network Write Fail ***"));
+        printf("%d *** RF24Ethernet Network Write Fail ***\r\n", (int)millis());
     }
-#endif
+    #endif
 
 #if defined ETH_DEBUG_L2
     if (ok)
     {
-        Serial.println();
-        Serial.print(millis());
-        Serial.println(F(" RF24Ethernet Network Write OK"));
+        printf("%d *** RF24Ethernet Network Write OK ***\r\n", (int)millis());
     }
 #endif
 }
-
-/*******************************************************/
-/*
-void uipudp_appcall(){
-
-}*/
-
-/*******************************************************/
