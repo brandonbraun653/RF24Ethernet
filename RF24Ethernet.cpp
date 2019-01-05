@@ -25,7 +25,6 @@ using namespace Chimera;
 
 IPAddress RF24EthernetClass::_dnsServerAddress;
 
-/*************************************************************/
 #if defined(RF24_TAP)
 RF24EthernetClass::RF24EthernetClass(NRF24L::NRF24L01 &_radio, RF24Network &_network) : radio(_radio) , network(_network)
 {
@@ -35,30 +34,24 @@ RF24EthernetClass::RF24EthernetClass(NRF24L::NRF24L01 &_radio, RF24Network &_net
 {
 }
 #endif
-/*************************************************************/
 
 void RF24EthernetClass::update()
 {
     Ethernet.tick();
 }
 
-/*************************************************************/
 #if defined ARDUINO_ARCH_AVR
 void yield()
 {
     Ethernet.update();
 }
 #endif
-/*************************************************************/
 
 void RF24EthernetClass::use_device()
 {
     // Kept for backwards compatibility only
 }
 
-/*******************************************************/
-
-/*******************************************************/
 void RF24EthernetClass::setMac(uint16_t address)
 {
 
@@ -78,8 +71,6 @@ void RF24EthernetClass::setMac(uint16_t address)
     network.begin(RF24_Channel, address);
 }
 
-/*******************************************************/
-
 void RF24EthernetClass::setChannel(uint8_t channel)
 {
 
@@ -89,8 +80,6 @@ void RF24EthernetClass::setChannel(uint8_t channel)
         radio.setChannel(RF24_Channel);
     }
 }
-
-/*******************************************************/
 
 void RF24EthernetClass::begin(IPAddress ip)
 {
@@ -117,8 +106,6 @@ void RF24EthernetClass::begin(IPAddress ip, IPAddress dns, IPAddress gateway, IP
     configure(ip, dns, gateway, subnet);
 }
 
-/*******************************************************/
-
 void RF24EthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet)
 {
 
@@ -141,14 +128,15 @@ void RF24EthernetClass::configure(IPAddress ip, IPAddress dns, IPAddress gateway
 
     timer_set(&this->periodic_timer, CLOCK_SECOND / UIP_TIMER_DIVISOR);
 
-#if defined(RF24_TAP)
+    #if defined(RF24_TAP)
     timer_set(&this->arp_timer, CLOCK_SECOND * 2);
-#endif
+    #endif
 
     uip_init();
-#if defined(RF24_TAP)
+
+    #if defined(RF24_TAP)
     uip_arp_init();
-#endif
+    #endif
 }
 
 /*******************************************************/
@@ -208,9 +196,6 @@ IPAddress RF24EthernetClass::dnsServerIP()
 
 void RF24EthernetClass::tick()
 {
-#if defined(ARDUINO_ARCH_ESP8266)
-    yield();
-#endif
     if (RF24Ethernet.network.update() == EXTERNAL_DATA_TYPE)
     {
         #ifndef DISABLE_FRAGMENTATION
@@ -218,7 +203,7 @@ void RF24EthernetClass::tick()
         #endif
     }
 
-#if !defined(RF24_TAP)
+    #if !defined(RF24_TAP)
     if (uip_len > 0)
     {
         uip_input();
@@ -242,16 +227,18 @@ void RF24EthernetClass::tick()
             }
         }
     }
-#else
+    #else
     if (uip_len > 0)
     {
         if (BUF->type == htons(UIP_ETHTYPE_IP))
         {
             uip_arp_ipin();
             uip_input();
-            /* If the above function invocation resulted in data that
-	   should be sent out on the network, the global variable
-	   uip_len is set to a value > 0. */
+
+            /*------------------------------------------------
+            If the above function invocation resulted in data that should be sent out 
+            on the network, the global variable uip_len is set to a value > 0
+            ------------------------------------------------*/
             if (uip_len > 0)
             {
                 uip_arp_out();
@@ -261,9 +248,11 @@ void RF24EthernetClass::tick()
         else if (BUF->type == htons(UIP_ETHTYPE_ARP))
         {
             uip_arp_arpin();
-            /* If the above function invocation resulted in data that
-	   should be sent out on the network, the global variable
-	   uip_len is set to a value > 0. */
+
+            /*------------------------------------------------
+            If the above function invocation resulted in data that should be sent out 
+            on the network, the global variable uip_len is set to a value > 0
+            ------------------------------------------------*/
             if (uip_len > 0)
             {
                 network_send();
@@ -276,23 +265,27 @@ void RF24EthernetClass::tick()
         for (int i = 0; i < UIP_CONNS; i++)
         {
             uip_periodic(i);
-            /* If the above function invocation resulted in data that
-	   should be sent out on the network, the global variable
-	   uip_len is set to a value > 0. */
+
+            /*------------------------------------------------
+            If the above function invocation resulted in data that should be sent out 
+            on the network, the global variable uip_len is set to a value > 0
+            ------------------------------------------------*/
             if (uip_len > 0)
             {
                 uip_arp_out();
                 network_send();
             }
         }
-#endif
-#if UIP_UDP
+    }
+    #endif /* !RF24_TAP*/
+
+    #if UIP_UDP
     for (int i = 0; i < UIP_UDP_CONNS; i++)
     {
         uip_udp_periodic(i);
         /* If the above function invocation resulted in data that
-	   should be sent out on the network, the global variable
-	   uip_len is set to a value > 0. */
+	    should be sent out on the network, the global variable
+	    uip_len is set to a value > 0. */
         if (uip_len > 0)
         {
             //uip_arp_out();
@@ -300,18 +293,19 @@ void RF24EthernetClass::tick()
             RF24UDP::_send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
         }
     }
-#endif /* UIP_UDP */
-#if defined(RF24_TAP)
-    /* Call the ARP timer function every 10 seconds. */
+    #endif /* !UIP_UDP */
 
+
+    #if defined(RF24_TAP)
+    /*------------------------------------------------
+    Call the ARP timer function every 10 seconds
+    ------------------------------------------------*/
     if (timer_expired(&Ethernet.arp_timer))
     {
         timer_reset(&Ethernet.arp_timer);
         uip_arp_timer();
     }
-}
-
-#endif //RF24_TAP
+    #endif /* !RF24_TAP */
 }
 
 bool RF24EthernetClass::network_send()
